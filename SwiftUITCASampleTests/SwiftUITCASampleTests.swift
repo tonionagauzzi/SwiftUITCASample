@@ -11,41 +11,55 @@ import ComposableArchitecture
 
 class SwiftUITCASampleTests: XCTestCase {
     func testCompletingToDo() {
-        let uuid = UUID.init()
+        let (uuid1, uuid2) = (UUID.init(), UUID.init())
         let store = TestStore(
             initialState: AppState(
                 todoStates: [
                     ToDoState(
-                        id: uuid,
+                        id: uuid1,
                         description: "ToDo 1",
                         isCompleted: false
                     ),
                     ToDoState(
-                        id: uuid,
+                        id: uuid2,
                         description: "ToDo 2",
                         isCompleted: false
                     )
                 ]
             ),
             reducer: appReducer,
-            environment: AppEnvironment(
-                uuid: { uuid }
-            )
+            environment: AppEnvironment()
         )
         store.assert(
-            .send(.todo(index: 0, action: .checkTapped)) { step in
-                step.todoStates[0].description = "ToDo 2"
-                step.todoStates[0].isCompleted = false
-                step.todoStates[1].description = "ToDo 1"
-                step.todoStates[1].isCompleted = true
+            .send(.todo(index: 0, action: .checkTapped)) { expected in
+                expected.todoStates = [
+                    ToDoState(
+                        id: uuid2,
+                        description: "ToDo 2",
+                        isCompleted: false
+                    ),
+                    ToDoState(
+                        id: uuid1,
+                        description: "ToDo 1",
+                        isCompleted: true
+                    )
+                ]
             }
         )
         store.assert(
-            .send(.todo(index: 0, action: .checkTapped)) { step in
-                step.todoStates[0].description = "ToDo 1"
-                step.todoStates[0].isCompleted = true
-                step.todoStates[1].description = "ToDo 2"
-                step.todoStates[1].isCompleted = true
+            .send(.todo(index: 0, action: .checkTapped)) { expected in
+                expected.todoStates = [
+                    ToDoState(
+                        id: uuid1,
+                        description: "ToDo 1",
+                        isCompleted: true
+                    ),
+                    ToDoState(
+                        id: uuid2,
+                        description: "ToDo 2",
+                        isCompleted: true
+                    )
+                ]
             }
         )
     }
@@ -60,8 +74,8 @@ class SwiftUITCASampleTests: XCTestCase {
             )
         )
         store.assert(
-            .send(.addButtonTapped) { step in
-                step.todoStates = [
+            .send(.addButtonTapped) { expected in
+                expected.todoStates = [
                     ToDoState(
                         id: uuid,
                         description: "",
@@ -93,8 +107,8 @@ class SwiftUITCASampleTests: XCTestCase {
             environment: AppEnvironment()
         )
         store.assert(
-            .send(.todo(index: 0, action: .removed)) { step in
-                step.todoStates = [
+            .send(.todo(index: 0, action: .removed)) { expected in
+                expected.todoStates = [
                     ToDoState(
                         id: uuid2,
                         description: "ToDo 2",

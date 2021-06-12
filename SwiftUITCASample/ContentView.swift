@@ -56,16 +56,17 @@ let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
         action: /AppAction.todo(index:action:),
         environment: { _ in ToDoEnvironment() }
     ),
-    Reducer { state, action, environemnt in
+    Reducer { state, action, environment in
         switch action {
         case .todo(index: _, action: .checkTapped):
             state.todoStates = state.todoStates
                 .enumerated()
                 .sorted {
-                    (!$0.element.isCompleted && $1.element.isCompleted)
-                        || $0.element.description.lowercased()
+                    $0.element.description.lowercased()
                         < $1.element.description.lowercased()
-                        || $0.offset < $1.offset
+                }
+                .sorted {
+                    !$0.element.isCompleted && $1.element.isCompleted
                 }
                 .map (\.element)
             return .none
@@ -75,7 +76,9 @@ let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
         case .todo(index: let index, action: let action):
             return .none
         case .addButtonTapped:
-            state.todoStates.insert(ToDoState(id: environemnt.uuid()), at: 0)
+            state.todoStates.insert(
+                ToDoState(id: environment.uuid()), at: state.todoStates.count
+            )
             return .none
         }
     }
