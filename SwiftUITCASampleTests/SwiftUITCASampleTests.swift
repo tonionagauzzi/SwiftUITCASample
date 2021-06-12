@@ -71,4 +71,37 @@ class SwiftUITCASampleTests: XCTestCase {
             }
         )
     }
+    
+    func testRemoveToDo() {
+        let (uuid1, uuid2) = (UUID.init(), UUID.init())
+        let store = TestStore(
+            initialState: AppState(
+                todoStates: [
+                    ToDoState(
+                        id: uuid1,
+                        description: "ToDo 1",
+                        isCompleted: false
+                    ),
+                    ToDoState(
+                        id: uuid2,
+                        description: "ToDo 2",
+                        isCompleted: true
+                    )
+                ]
+            ),
+            reducer: appReducer,
+            environment: AppEnvironment()
+        )
+        store.assert(
+            .send(.todo(index: 0, action: .removed)) { step in
+                step.todoStates = [
+                    ToDoState(
+                        id: uuid2,
+                        description: "ToDo 2",
+                        isCompleted: true
+                    )
+                ]
+            }
+        )
+    }
 }

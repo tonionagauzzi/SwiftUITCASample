@@ -17,6 +17,7 @@ struct ToDoState: Equatable, Identifiable {
 enum ToDoAction: Equatable {
     case checkTapped
     case textChanged(String)
+    case removed
 }
 
 struct ToDoEnvironment {
@@ -30,6 +31,8 @@ let todoReducer = Reducer<ToDoState, ToDoAction, ToDoEnvironment> {
         return .none
     case .textChanged(let text):
         state.description = text
+        return .none
+    case .removed:
         return .none
     }
 }
@@ -65,6 +68,9 @@ let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
                         || $0.offset < $1.offset
                 }
                 .map (\.element)
+            return .none
+        case .todo(index: let index, action: .removed):
+            state.todoStates.remove(at: index)
             return .none
         case .todo(index: let index, action: let action):
             return .none
@@ -115,6 +121,13 @@ struct ContentView: View {
                         ),
                         content: ToDoSmallView.init(store:)
                     )
+                    .onDelete { indexSet in
+                        indexSet.forEach { index in
+                            viewStore.send(
+                                .todo(index: index, action: .removed)
+                            )
+                        }
+                    }
                 }
                 .listStyle(PlainListStyle())
                 .navigationBarTitle("ToDo list")
